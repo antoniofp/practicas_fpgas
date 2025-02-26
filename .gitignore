@@ -1,0 +1,55 @@
+# Quartus II generated files
+*.qpg
+*.rpt
+*.done
+*.summary
+*.pin
+*.map
+*.qws
+*.db
+
+# Simulation output files
+*.vcd
+*.wlf
+*.log
+
+# Compilation output directories
+db/
+incremental_db/
+output_files/
+simulation/
+
+# Backup files
+*.bak
+*.qsave
+*.qdf
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+
+# Specific Quartus temporary files
+*.jdi
+*.ptf.*
+*.smsg
+*.cmp
+*.htm
+*.html
+
+# Prevent uploading unnecessary IDE or system files
+.vscode/
+.idea/
+*.swp
+*~
+
+# Compiled executable or intermediate files
+*.exe
+*.out
+*.o
+*.obj
+
+# Prevent accidental upload of large binary files
+*.bin
+*.hex
+
