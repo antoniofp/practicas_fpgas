@@ -1,6 +1,4 @@
-# -------------------------------------------------------------------------- #
-#
-# Copyright (C) 2023  Intel Corporation. All rights reserved.
+# Copyright (C) 2020  Intel Corporation. All rights reserved.
 # Your use of Intel Corporation's design tools, logic functions 
 # and other software and tools, and any partner logic 
 # functions, and any output files from any of the foregoing 
@@ -14,55 +12,13 @@
 # Intel and sold by Intel or its authorized distributors.  Please
 # refer to the applicable agreement for further details, at
 # https://fpgasoftware.intel.com/eula.
-#
-# -------------------------------------------------------------------------- #
-#
-# Quartus Prime
-# Version 23.1std.0 Build 991 11/28/2023 SC Lite Edition
-# Date created = 23:52:08  February 25, 2025
-#
-# -------------------------------------------------------------------------- #
-#
-# Notes:
-#
-# 1) The default values for assignments are stored in the file:
-#		practica2_bcd_assignment_defaults.qdf
-#    If this file doesn't exist, see file:
-#		assignment_defaults.qdf
-#
-# 2) Intel recommends that you do not modify this file. This
-#    file is updated automatically by the Quartus Prime software
-#    and any changes you make may be lost or overwritten.
-#
-# -------------------------------------------------------------------------- #
 
+# Quartus Prime Version 20.1.1 Build 720 11/11/2020 SJ Lite Edition
+# File: C:\Users\tiano\Downloads\DE10_LITE_Golden_Top_project\pin_assigment.tcl
+# Generated on: Tue Feb 21 22:46:36 2023
 
-set_global_assignment -name FAMILY "MAX 10"
-set_global_assignment -name DEVICE 10M50DAF484C7G
-set_global_assignment -name TOP_LEVEL_ENTITY bcd_wrapper
-set_global_assignment -name ORIGINAL_QUARTUS_VERSION 23.1STD.0
-set_global_assignment -name PROJECT_CREATION_TIME_DATE "23:52:08  FEBRUARY 25, 2025"
-set_global_assignment -name LAST_QUARTUS_VERSION "23.1std.0 Lite Edition"
-set_global_assignment -name VERILOG_FILE ../otros_modulos/decoder_7_seg.v
-set_global_assignment -name VERILOG_FILE bcd_wrapper.v
-set_global_assignment -name VERILOG_FILE bcd_tb.v
-set_global_assignment -name VERILOG_FILE bcd.v
-set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
-set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
-set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
-set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256
-set_global_assignment -name EDA_SIMULATION_TOOL "Questa Intel FPGA (Verilog)"
-set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
-set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
-set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_timing
-set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
-set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
-set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name TCL_SCRIPT_FILE "../../practicas - Copy/pin_assigment.tcl"
-set_global_assignment -name TCL_SCRIPT_FILE ../pin_assigment.tcl
+package require ::quartus::project
+
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ADC_CLK_10
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MAX10_CLK1_50
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MAX10_CLK2_50
@@ -433,4 +389,3 @@ set_location_assignment PIN_AB3 -to GPIO[32]
 set_location_assignment PIN_Y3 -to GPIO[33]
 set_location_assignment PIN_AB2 -to GPIO[34]
 set_location_assignment PIN_AA2 -to GPIO[35]
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
