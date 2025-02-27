@@ -39,14 +39,10 @@
 
 set_global_assignment -name FAMILY "MAX 10"
 set_global_assignment -name DEVICE 10M50DAF484C7G
-set_global_assignment -name TOP_LEVEL_ENTITY door_animation_wrapper
+set_global_assignment -name TOP_LEVEL_ENTITY one_shot
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 23.1STD.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "23:59:05  FEBRUARY 25, 2025"
 set_global_assignment -name LAST_QUARTUS_VERSION "23.1std.0 Lite Edition"
-set_global_assignment -name VERILOG_FILE nbit_adder.v
-set_global_assignment -name VERILOG_FILE display_sum.v
-set_global_assignment -name VERILOG_FILE decoder_7_seg.v
-set_global_assignment -name VERILOG_FILE adder.v
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
@@ -58,20 +54,13 @@ set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
-set_global_assignment -name VERILOG_FILE clk_div.v
-set_global_assignment -name VERILOG_FILE clk_div_tb.v
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
-set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH clk_div_tb -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH one_shot_tb -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_NAME clk_div_tb -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id clk_div_tb
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME clk_div_tb -section_id clk_div_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE clk_div_tb.v -section_id clk_div_tb
-set_global_assignment -name VERILOG_FILE debouncer.v
-set_global_assignment -name VERILOG_FILE FSM_example.v
-set_global_assignment -name VERILOG_FILE door_animation.v
-set_global_assignment -name TCL_SCRIPT_FILE ../pin_assigment.tcl
 set_location_assignment PIN_N5 -to ADC_CLK_10
 set_location_assignment PIN_P11 -to MAX10_CLK1_50
 set_location_assignment PIN_N14 -to MAX10_CLK2_50
@@ -257,7 +246,6 @@ set_location_assignment PIN_AB3 -to GPIO[32]
 set_location_assignment PIN_Y3 -to GPIO[33]
 set_location_assignment PIN_AB2 -to GPIO[34]
 set_location_assignment PIN_AA2 -to GPIO[35]
-set_global_assignment -name VERILOG_FILE door_animation_wrapper.v
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
@@ -446,4 +434,22 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[32]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[33]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[34]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[35]
+set_global_assignment -name VERILOG_FILE one_shot.v
+set_global_assignment -name VERILOG_FILE nbit_adder.v
+set_global_assignment -name VERILOG_FILE display_sum.v
+set_global_assignment -name VERILOG_FILE decoder_7_seg.v
+set_global_assignment -name VERILOG_FILE adder.v
+set_global_assignment -name VERILOG_FILE clk_div.v
+set_global_assignment -name VERILOG_FILE clk_div_tb.v
+set_global_assignment -name VERILOG_FILE debouncer.v
+set_global_assignment -name VERILOG_FILE FSM_example.v
+set_global_assignment -name VERILOG_FILE door_animation.v
+set_global_assignment -name TCL_SCRIPT_FILE ../pin_assigment.tcl
+set_global_assignment -name VERILOG_FILE door_animation_wrapper.v
+set_global_assignment -name VERILOG_FILE one_shot_tb.v
+set_global_assignment -name EDA_TEST_BENCH_FILE clk_div_tb.v -section_id clk_div_tb
+set_global_assignment -name EDA_TEST_BENCH_NAME one_shot_tb -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id one_shot_tb
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME one_shot_tb -section_id one_shot_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE one_shot_tb.v -section_id one_shot_tb
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

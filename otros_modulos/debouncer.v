@@ -9,7 +9,7 @@ module debouncer #(
     // Instantiate clock divider for debouncing
     wire sample_clk;
     clk_div #(
-        .OUTPUT_FREQ(1000 / DEBOUNCE_TIME_MS)  // Convert ms to frequency
+        .OUTPUT_FREQ(1000 / DEBOUNCE_TIME_MS)  // en el clk_div esto se pasa como frecuencia, si el contador necesario para esa frecuencia no es entero, se redondea para abajo, dando así una frecuencia mayor
     ) debounce_clk_div (
         .clk_in(clk),
         .rst_a_p(rst_a_p),
@@ -38,19 +38,3 @@ module debouncer #(
     // Output is stable only when both flip-flops match (AND gate)
     assign button_out = (ff1 == ff2) ? ff2 : 1'b0;
 endmodule
-
- module d_flip_flop (
- input wire clk,       // Clock input
- input wire rst_a_p,   // Active high reset
- input wire d,         // Data input
- output reg q          // Data output
-);
- // Simple D flip-flop implementation
- always @(posedge clk, posedge rst_a_p) begin
-      if (rst_a_p) begin
-            q <= 1'b0;
-      end else begin
-            q <= d;
-      end
- end
- endmodule
