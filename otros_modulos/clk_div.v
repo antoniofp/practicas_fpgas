@@ -1,5 +1,5 @@
 module clk_div #(
-    parameter OUTPUT_FREQ = 1_000_000   // Desired output frequency in Hz (default 1MHz)
+    parameter OUTPUT_FREQ = 1 
 )(
     input wire clk_in,     // Input clock
     input wire rst_a_p,      // reset
@@ -13,19 +13,15 @@ module clk_div #(
     
     reg [24:0] counter;
     
-    // Clock divider logic
     always @(posedge clk_in, posedge rst_a_p) begin
         if (rst_a_p) begin
-            // Reset state
             counter <= 0;
             clk_out <= 0;
         end else begin
             if (counter == COUNTER_LIMIT) begin
-                // Reset counter and toggle output clock
                 counter <= 0;
                 clk_out <= ~clk_out;
             end else begin
-                // Increment counter
                 counter <= counter + 1;
             end
         end
