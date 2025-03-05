@@ -9,7 +9,7 @@ module clk_div #(
 
     // Calculate the counter limit based on frequencies
     // Division by 2 because we toggle at half the period
-	localparam integer COUNTER_LIMIT = (BASE_FREQ / (2 * OUTPUT_FREQ)) - 1;
+	localparam integer COUNTER_LIMIT = (BASE_FREQ / (2 * OUTPUT_FREQ)) - 1; //ojito, esto redondea para abajo en caso de no resultar en entero, IMPLICACIONES: contador menor, frecuencia mayor.
     
     reg [24:0] counter;
     

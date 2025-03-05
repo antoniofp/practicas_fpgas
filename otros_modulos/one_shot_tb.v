@@ -1,50 +1,45 @@
-
-
 module one_shot_tb();
-    // Testbench signals
+    // Señales de prueba
     reg clk;
     reg rst_a_p;
     reg button_in;
     wire pulse_out;
     
-    // Clock generator
-    initial begin
-        clk = 0;
-        forever #10 clk = ~clk;  // 10ns period
-    end
-    
-    // Instantiate the unit under test
+    // Instanciamos el módulo bajo prueba
+    // Asumimos que no necesitamos el debouncer para la prueba simple
     one_shot #(
-    .DEBOUNCE_TIME_MS(0.00033)  // 1μs for simulation
-	) DUT (
-    .clk(clk),
-    .rst_a_p(rst_a_p),
-    .button_in(button_in),
-    .pulse_out(pulse_out)
-	);
+        .DEBOUNCE_TIME_MS(0.0001) 
+    ) dut (
+        .clk(clk),
+        .rst_a_p(rst_a_p),
+        .button_in(button_in),
+        .pulse_out(pulse_out)
+    );
     
-    // Test scenario
+
+    always #10 clk = ~clk;
+    
+    // Secuencia de prueba
     initial begin
-        // Initialize inputs
+        // Inicialización
+        clk = 0;
         rst_a_p = 1;
         button_in = 0;
         
-        // Apply reset
-        #20;
-        rst_a_p = 0;
-        #20;
+        // Desactivamos reset después de 20ns
+        #20 rst_a_p = 0;
         
-        // Button presses
-        button_in = 1;
-        #2000;
-        button_in = 0;
-        #2000;
+        // Esperamos un poco y activamos el botón
+        #200 button_in = 1;
         
-        button_in = 1;
-        #5000;
-        button_in = 0;
-        #2000;
+        // Mantenemos el botón presionado por un tiempo
+        #400 button_in = 0;
         
-        $stop;
+        // Esperamos y presionamos nuevamente
+        #200 button_in = 1;
+        #400 button_in = 0;
+        
+        // Terminamos la simulación
+        #500 $stop;
     end
 endmodule

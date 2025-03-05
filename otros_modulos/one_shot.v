@@ -1,69 +1,31 @@
 module one_shot #(
-    parameter DEBOUNCE_TIME_MS = 1     // Debounce time in milliseconds
+    parameter DEBOUNCE_TIME_MS = 10     // Tiempo de debounce en milisegundos
 )(
-    input wire clk,          // System clock
-    input wire rst_a_p,      // Active high reset
-    input wire button_in,    // Raw button input
-    output wire pulse_out    // One-shot pulse output
+    input wire clk,          // Reloj del sistema
+    input wire rst_a_p,      // Reset activo alto
+    input wire button_in,    // Entrada sucia del botón
+    output reg pulse_out     // Salida del pulso one-shot
 );
-    // Instantiate clock divider for debouncing
-    wire sample_clk;
-    clk_div #(
-        .OUTPUT_FREQ(1000 / DEBOUNCE_TIME_MS)  // Convert ms to frequency
-    ) debounce_clk_div (
-        .clk_in(clk),
+    wire debounced_button;   // Señal limpia despues del debouncer
+    reg button_prev;         // Para detectar el flanco ascendente
+    
+    // Instanciamos el debouncer para limpiar la señal
+    debouncer #(DEBOUNCE_TIME_MS) debouncer1 (
+        .clk(clk),
         .rst_a_p(rst_a_p),
-        .clk_out(sample_clk)
+        .button_in(button_in),
+        .button_out(debounced_button)
     );
     
-    // Two D flip-flop synchronizer chain
-    wire ff1, ff2;
-    
-    // First flip-flop synchronizes the input
-    d_flip_flop dff1 (
-        .clk(sample_clk),
-        .rst_a_p(rst_a_p),
-        .d(button_in),
-        .q(ff1)
-    );
-    
-    // Second flip-flop detects stable signal
-    d_flip_flop dff2 (
-        .clk(sample_clk),
-        .rst_a_p(rst_a_p),
-        .d(ff1),
-        .q(ff2)
-    );
-    
-    // Debounced button output
-    wire debounced_btn;
-    assign debounced_btn = (ff1 == ff2) ? ff2 : 1'b0;
-    
-    // Third flip-flop to capture previous debounced value
-    wire ff3;
-    d_flip_flop dff3 (
-        .clk(sample_clk),
-        .rst_a_p(rst_a_p),
-        .d(debounced_btn),
-        .q(ff3)
-    );
-    
-    // One-shot pulse output - high when debounced is high and previous was low
-    assign pulse_out = debounced_btn & ~ff3;
+    always @(posedge clk or posedge rst_a_p) begin
+        if (rst_a_p) begin
+            button_prev <= 1'b0;
+            pulse_out <= 1'b0;
+        end else begin
+            // Guardamos el valor actual para el siguiente ciclo
+            button_prev <= debounced_button;
+            // Solo se activa en el flanco ascendente de la señal limpia
+            pulse_out <= debounced_button && !button_prev;
+        end
+    end
 endmodule
-
- module d_flip_flop (
- input wire clk,       // Clock input
- input wire rst_a_p,   // Active high reset
- input wire d,         // Data input
- output reg q          // Data output
-);
- // Simple D flip-flop implementation
- always @(posedge clk, posedge rst_a_p) begin
-      if (rst_a_p) begin
-            q <= 1'b0;
-      end else begin
-            q <= d;
-      end
- end
- endmodule

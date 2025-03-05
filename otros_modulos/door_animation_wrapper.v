@@ -9,10 +9,10 @@ module door_animation_wrapper(
         .clk(MAX10_CLK1_50),
         .rst_a_p(~KEY[0]),    // Convert active-low to active-high
         .open_btn(~KEY[1]),   // Convert active-low to active-high
-        .person_in(person_inside),
+        .door_cycle_complete(cycle_complete),
         .leds(LEDR)
     );
     
     // Optional: Display person status on 7-segment
-    assign HEX0 = person_inside ? 8'hF9 : 8'hC0; // '1' or '0'
+    assign HEX0 = cycle_complete ? 8'hF9 : 8'hC0; // '1' or '0'
 endmodule

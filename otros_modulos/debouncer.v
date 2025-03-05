@@ -38,3 +38,19 @@ module debouncer #(
     // Output is stable only when both flip-flops match (AND gate)
     assign button_out = (ff1 == ff2) ? ff2 : 1'b0;
 endmodule
+
+ module d_flip_flop (
+ input wire clk,       // Clock input
+ input wire rst_a_p,   // Active high reset
+ input wire d,         // Data input
+ output reg q          // Data output
+);
+ // Simple D flip-flop implementation
+ always @(posedge clk, posedge rst_a_p) begin
+      if (rst_a_p) begin
+            q <= 1'b0;
+      end else begin
+            q <= d;
+      end
+ end
+ endmodule

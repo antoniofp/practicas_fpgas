@@ -1,10 +1,10 @@
 module door_animation(
     input wire open_btn, clk, rst_a_p,
-    output reg person_in,
+    output reg door_cycle_complete,
     output reg [9:0] leds
 );
     reg [4:0] current_state, next_state;
-    reg door_cycle_complete;
+    reg person_in;
     wire clk_slow;
     
     clk_div #(2) slow_clk (
