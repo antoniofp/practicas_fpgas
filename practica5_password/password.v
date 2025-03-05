@@ -28,7 +28,7 @@ reg [2:0] current_state, next_state; //registro para guardar estados
  always @(posedge clk or posedge rst_a_p) begin
  	disp_debug <= current_state;
 	  if(rst_a_p)
-			current_state <= 0; //el estado conocido; el estado deseado
+			current_state <= 0; //el estado conocido
 	  else 
 		begin
 			current_state <= next_state;
