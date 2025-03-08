@@ -120,17 +120,17 @@ always @(current_state, switch_pulse) begin
 	end
 	
 	5: begin //done
-	if (switch_pulse[9:0]==10'b0000000000) //idle in the done
-	begin
-		next_state = current_state;
-	end
-	else
-		next_state = 1;
-	end
-	
-	default: begin
-		next_state = 0;
-	end
+		if (switch_pulse[9:0]==10'b0000000000) //idle in the done
+		begin
+			next_state = current_state;
+		end
+		else
+			next_state = 0;
+		end
+
+		default: begin
+			next_state = 0;
+		end
 	endcase
 end
 

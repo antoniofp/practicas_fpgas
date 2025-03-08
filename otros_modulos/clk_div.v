@@ -16,7 +16,7 @@ module clk_div #(
     always @(posedge clk_in, posedge rst_a_p) begin
         if (rst_a_p) begin
             counter <= 0;
-            clk_out <= 0;
+            clk_out <= 1;
         end else begin
             if (counter == COUNTER_LIMIT) begin
                 counter <= 0;
