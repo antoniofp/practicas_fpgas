@@ -1,10 +1,7 @@
 module uart_tx #(
 	// Parámetros configurables desde fuera
 	parameter BASE_FREQ = 'd50_000_000,   // Frecuencia base por defecto (50 MHz)
-	parameter BAUDRATE = 'd115_200,       // Baudrate por defecto (115.2 kbps)
-	parameter PARITY_EN = 1,              // Habilitación de bit de paridad (1=activado)
-	parameter PARITY_TYPE = 0,            // Tipo de paridad (0=par, 1=impar)
-	parameter STOP_BITS = 1               // Número de bits de parada (1 o 2)
+	parameter BAUDRATE = 'd115_200       // Baudrate por defecto (115.2 kbps)
 )(
 	input [7:0] data,
 	input send_data,
@@ -81,21 +78,23 @@ begin
 				// Enviamos el bit actual de datos
 				serial_out <= data[d_idx];
 				
+				// Seguimos esperando el tiempo de un bit
 				if(clock_ctr < counts_per_bit-1)
 				begin
-					// Seguimos esperando el tiempo de un bit
 					clock_ctr <= clock_ctr + 1;
 					active_state <= TX_DATA;
 				end
+				//terminó el tiempo de transmisión del bit
 				else
 				begin
-					// Terminó el tiempo para este bit
+					//reseteo dle clock_ctr
 					clock_ctr <= 0;
 					
 					// Actualizamos el contador de unos para la paridad
 					if(data[d_idx] == 1)
 						bit_ctr <= bit_ctr + 1;
-						
+					//si el índice es menor a 7 (inicia siendo 0 y el 7 es el último indice, 8 bits en total)
+					//el cero no es el que hay en idle? sí pero no se manda hasta tx data.
 					if(d_idx < 7)
 					begin
 						// Todavía quedan bits por enviar

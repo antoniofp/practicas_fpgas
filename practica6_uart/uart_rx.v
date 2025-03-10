@@ -1,83 +1,132 @@
-module uart_rx (
+module uart_rx #(
+	// Parámetros configurables desde fuera
+	parameter BASE_FREQ = 'd50_000_000,   // Frecuencia base por defecto (50 MHz)
+	parameter BAUDRATE = 'd115_200        // Baudrate por defecto (115.2 kbps)
+)(
 	input clk,  
 	input serial_in,
 	input rst,
-	output reg [7:0] parallel_out  // Necesitamos declararlo como reg
+	output reg [7:0] parallel_out = 'b00000000,
+	output reg data_valid               // Nueva señal que indica cuando los datos son válidos
 );
-localparam baudrate = 115200;  // Los números no llevan comillas en Verilog
-localparam base_freq = 50_000_000;  // Los números no llevan comillas en Verilog
-localparam clocks_per_bit = base_freq/baudrate;
-localparam RX_IDLE = 2'b00;
-localparam RX_START = 2'b01;
-localparam RX_DATA = 2'b10;
-localparam RX_STOP = 2'b11;
-reg [1:0] active_state = RX_IDLE;
+// Parámetros derivados (calculados automáticamente)
+localparam counts_per_bit = BASE_FREQ / BAUDRATE; // Cuántos ciclos de reloj por bit
+
+// Estados de la máquina
+localparam RX_IDLE = 3'b000;
+localparam RX_START = 3'b001;
+localparam RX_DATA = 3'b010;
+localparam RX_PARITY = 3'b011;   // Nuevo estado para el bit de paridad
+localparam RX_STOP = 3'b100;
+
+// Registros internos
+reg [2:0] active_state = RX_IDLE;
 reg [31:0] clock_ctr = 0;
 reg [2:0] d_idx = 0;
+reg [3:0] bit_ctr = 0;         // Contador de bits '1' para verificar paridad
+reg parity_error = 0;          // Indica si hubo error de paridad
 
 always @(posedge clk or posedge rst)
-	if(rst) begin  // Añadimos begin-end para bloques con más de una instrucción
-		active_state <= RX_IDLE;  // Faltaba punto y coma
-		clock_ctr <= 0;  // Reseteamos el contador de reloj
-		d_idx <= 0;  // Reseteamos el índice de datos
+	if(rst) begin 
+		active_state <= RX_IDLE;  
+		clock_ctr <= 0;  
+		d_idx <= 0;
+		bit_ctr <= 0;
+		data_valid <= 0;
+		parity_error <= 0;
 	end
 	else begin
 		case(active_state)
-		RX_IDLE: begin  // Añadimos begin-end para el case
-			clock_ctr <= 0;  // Asignación no-bloqueante para registros
+		RX_IDLE: begin  
+			clock_ctr <= 0;  
+			d_idx <= 0;
+			bit_ctr <= 0;
+			//data_valid <= 0;      // Reseteamos la señal de datos válidos
 			
-			if(serial_in == 0)  // Operador de comparación correcto
+			if(serial_in == 0)    // Detectamos el bit de inicio (siempre 0)
+			begin
 				active_state <= RX_START;
+				data_valid <= 0;      // Reseteamos la señal de datos válidos
+			end
+
 			else	
-				active_state <= RX_IDLE;  // Arreglamos el operador de asignación
-		end // RX_IDLE
+				active_state <= RX_IDLE;
+		end
 		
-		RX_START: begin  // Quitamos los dos puntos que no son parte de la sintaxis de Verilog
-			if(clock_ctr <= (clocks_per_bit -1)/2) begin
-				clock_ctr <= clock_ctr + 1;  // Faltaba punto y coma
+		RX_START: begin  
+			// Esperamos hasta la mitad del bit para muestrear en el centro
+			if(clock_ctr < (counts_per_bit - 1)/2) begin
+				clock_ctr <= clock_ctr + 1;  
 				active_state <= RX_START;
 			end
+			//ya se cumplió medio periodo de bit, va hacia el estado donde lee los bits
 			else begin
 				active_state <= RX_DATA;
 				clock_ctr <= 0;
-				d_idx <= 0;  // Reiniciamos el índice de datos antes de comenzar la recepción
 			end
-		end  // Añadimos end para RX_START
+		end
 					
 		RX_DATA: begin
-			if (clock_ctr < clocks_per_bit - 1) begin  // Cambiado a < para evitar problemas de timing
+			// En datos, esperamos un bit completo antes de muestrear
+			//estaba en el bit de inicio, ese no hay que leerlo
+			if (clock_ctr < counts_per_bit - 1) begin  
 				clock_ctr <= clock_ctr + 1;
 				active_state <= RX_DATA;
 			end
+			//resetea el clock y mete el bit en el índice correspondiente
 			else begin
 				clock_ctr <= 0;
 				parallel_out[d_idx] <= serial_in;  // Almacenamos el bit recibido
 				
+				// Actualizamos contador de unos para paridad
+				if(serial_in == 1)
+					bit_ctr <= bit_ctr + 1;
+				//al llegar al indice 6 (último caso valido), el indice se actualiza a 7 (8tavo bit)
 				if(d_idx < 7) begin
-					d_idx <= d_idx + 1;  // Faltaba punto y coma
-					active_state <= RX_DATA;  // Asignación no-bloqueante
+					d_idx <= d_idx + 1;  
+					active_state <= RX_DATA;  
 				end
 				else begin
-					d_idx <= 0;  // Reiniciamos el índice para la próxima transmisión
-					active_state <= RX_STOP;
+					// Ya recibimos todos los bits de datos, ahora vamos por el de paridad
+					active_state <= RX_PARITY;
 				end
 			end
-		end  // RX DATA
+		end
+		
+		RX_PARITY: begin
+			// Verificamos el bit de paridad
+			if(clock_ctr < counts_per_bit - 1) begin
+				clock_ctr <= clock_ctr + 1;
+				active_state <= RX_PARITY;
+			end
+			else begin
+				clock_ctr <= 0;
+				// Verificación de paridad par (mismo método que en TX)
+				//si son bits pares pero se manda bit de pariedad o visceversa, hay error
+				parity_error <= ((bit_ctr % 2 == 0) && serial_in == 1) || 
+				               ((bit_ctr % 2 == 1) && serial_in == 0);
+				active_state <= RX_STOP;
+			end
+		end
 		
 		RX_STOP: begin
-			if(clock_ctr < clocks_per_bit - 1) begin
+			if(clock_ctr < counts_per_bit - 1) begin
 				clock_ctr <= clock_ctr + 1;
 				active_state <= RX_STOP;
 			end
 			else begin
 				clock_ctr <= 0;
-				active_state <= RX_IDLE;  // Volvemos al estado IDLE esperando el próximo byte
-				// No es necesario hacer nada con parallel_out, ya contiene el byte completo
+				// Si el bit de parada es 1 y no hubo error de paridad, datos válidos
+				if(serial_in == 1 && !parity_error)
+					data_valid <= 1;  // Indicamos que tenemos datos válidos
+				else 
+					data_valid <= 0; //si por alguna razon no llega un 1 en tx/rx stop, o hubo error en el parity check, la data no es valida
+				active_state <= RX_IDLE;
 			end
-		end  // RX_STOP
+		end
 		
 		default: begin
-			active_state <= RX_IDLE;  // Por seguridad, volvemos a IDLE en caso de estado inválido
+			active_state <= RX_IDLE;  // Por seguridad, volvemos a IDLE
 		end
 		
 		endcase
