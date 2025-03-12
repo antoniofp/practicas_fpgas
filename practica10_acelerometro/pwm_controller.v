@@ -5,7 +5,8 @@ module pwm_controller (
 	input is_negative
 );
 	localparam BIT_RESOLUTION = 8;
-	localparam PWM_STEP = 50_000/(2**(BIT_RESOLUTION-1));//-1 PORQUE AGARRO EL PRIMER BIT del tercer nibble, es para evitar que se vaya a cero cuando 0F-1F
+	localparam PWM_STEP = 50_000/(2**(BIT_RESOLUTION-1));//-1 PORQUE AGARRO EL PRIMER BIT del tercer nibble, es para evitar que se vaya a cero cuando 0F-10
+	//en la práctica es un bit menos de resolución porque casi nunca sale el primer bit del tercer nibble.
 	
 	// Extraemos los bits útiles para el ángulo
 	wire [BIT_RESOLUTION-1:0] current_rough_angle = absolute_angle[8:1];
