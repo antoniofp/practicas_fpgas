@@ -1,4 +1,4 @@
-module accel (
+module accel_reader (
 	//////////// CLOCK //////////
 	input 		          		ADC_CLK_10,
 	input 		          		MAX10_CLK1_50,
@@ -21,11 +21,18 @@ module accel (
 	input 		     [2:1]		GSENSOR_INT,
 	output		          		GSENSOR_SCLK,
 	inout 		          		GSENSOR_SDI,
-	inout 		          		GSENSOR_SDO
+	inout 		          		GSENSOR_SDO,
+	//////////// SALIDAS PARA INSTANCIACIÓN //////////
+	output		    [15:0]		abs_x_out,      // Valor absoluto eje X
+	output		    [15:0]		abs_y_out,      // Valor absoluto eje Y
+	output		    [15:0]		abs_z_out,      // Valor absoluto eje Z
+	output		          		neg_x_out,      // Señal negativa eje X
+	output		          		neg_y_out,      // Señal negativa eje Y
+	output		          		neg_z_out       // Señal negativa eje Z
 	);
 //===== Declarations
 	// Simplificamos parámetros de frecuencia
-	localparam SPI_CLK_FREQ  = 200;      // SPI Clock (Hz)
+	localparam SPI_CLK_FREQ  = 60_000;      // SPI Clock (Hz)
 	
 	// clks and reset
 	wire reset_n;
@@ -45,14 +52,16 @@ PLL ip_inst (
 	.c2 ( spi_clk_out )          //  2 MHz, phase 270 degrees
 	);
 
-//Divisor de reloj para generar actualización a 10Hz
-clk_div_a_n #(
-	.OUTPUT_FREQ(50)          
+/*
+	clk_div_a_n #(
+	.OUTPUT_FREQ(60*2)          
 ) update_div (
 	.clk_in(clk),              // Reloj de entrada a 25MHz
 	.rst_a_n(reset_n),         // Reset activo bajo
 	.clk_out(display_update_freq)      // Señal de salida a 10Hz
 );
+
+*/ //ya no uso este clock divider
 
 //Instantiation of the spi_control module
 spi_control #(
@@ -83,27 +92,35 @@ reg signed [15:0] raw_x_sample = 0;
 reg signed [15:0] raw_y_sample = 0;
 reg signed [15:0] raw_z_sample = 0;
 
-// Actualizamos los valores con frecuencia de 10Hz
-always @(posedge display_update_freq or negedge reset_n) begin
+always @(posedge clk or negedge reset_n) begin
 	if (!reset_n) begin
 		raw_x_sample <= 0;
 		raw_y_sample <= 0;
 		raw_z_sample <= 0;
-	end else begin
+	end else if (data_update) begin  // Señal que indica nuevos datos
 		raw_x_sample <= data_x;
 		raw_y_sample <= data_y;
 		raw_z_sample <= data_z;
 	end
 end
 
+// Obtenemos valores absolutos para visualización
 wire [15:0] abs_x = (raw_x_sample[15]) ? (~raw_x_sample + 1'b1) : raw_x_sample;
 wire [15:0] abs_y = (raw_y_sample[15]) ? (~raw_y_sample + 1'b1) : raw_y_sample;
 wire [15:0] abs_z = (raw_z_sample[15]) ? (~raw_z_sample + 1'b1) : raw_z_sample;
 
-// cablas para determinar si los valores son negativos
+// Flags para determinar si los valores son negativos
 wire is_negative_x = raw_x_sample[15];
 wire is_negative_y = raw_y_sample[15];
 wire is_negative_z = raw_z_sample[15];
+
+// Conectamos los valores absolutos y signos a las salidas
+assign abs_x_out = abs_x;
+assign abs_y_out = abs_y;
+assign abs_z_out = abs_z;
+assign neg_x_out = is_negative_x;
+assign neg_y_out = is_negative_y;
+assign neg_z_out = is_negative_z;
 
 // Lógica de selección basada en SW[1:0] como número binario
 // 00 = X, 01 = Y, 10 = Z, 11 = 3
@@ -157,3 +174,36 @@ seg7 s5 ( .in(axis_code+1), .display(HEX5) );
 assign LEDR = {is_negative, display_data[8:0]};
 
 endmodule
+
+
+/*
+accel mi_acelerometro (
+	// Puertos que necesitas usar directamente
+	.abs_x_out(mi_abs_x),
+	.abs_y_out(mi_abs_y),
+	.abs_z_out(mi_abs_z),
+	.neg_x_out(mi_neg_x),
+	.neg_y_out(mi_neg_y),
+	.neg_z_out(mi_neg_z),
+	
+	// Puertos de conexión a hardware físico (del TCL)
+	.ADC_CLK_10(ADC_CLK_10),
+	.MAX10_CLK1_50(MAX10_CLK1_50),
+	.MAX10_CLK2_50(MAX10_CLK2_50),
+	.HEX0(HEX0),
+	.HEX1(HEX1),
+	.HEX2(HEX2),
+	.HEX3(HEX3),
+	.HEX4(HEX4),
+	.HEX5(HEX5),
+	.KEY(KEY),
+	.LEDR(LEDR),
+	.SW(SW),
+	.GSENSOR_CS_N(GSENSOR_CS_N),
+	.GSENSOR_INT(GSENSOR_INT),
+	.GSENSOR_SCLK(GSENSOR_SCLK),
+	.GSENSOR_SDI(GSENSOR_SDI),
+	.GSENSOR_SDO(GSENSOR_SDO)
+);
+
+*/
