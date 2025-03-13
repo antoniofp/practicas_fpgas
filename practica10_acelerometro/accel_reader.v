@@ -31,7 +31,7 @@ module accel_reader (
 	output		          		neg_z_out       // Señal negativa eje Z
 	);
 //===== Declarations
-	// Simplificamos parámetros de frecuencia
+	// rate a la que el spi saca los valores del acel
 	localparam SPI_CLK_FREQ  = 600;//_000;      // SPI Clock (Hz)
 	
 	// clks and reset
@@ -41,8 +41,6 @@ module accel_reader (
 	wire data_update;
 	wire [15:0] data_x, data_y, data_z; // Datos de los tres ejes
 	
-	// Señal de actualización a 10Hz
-	wire display_update_freq;
 
 //Phase-locked Loop (PLL) instantiation
 PLL ip_inst (
@@ -78,7 +76,6 @@ spi_control #(
 assign reset_n = SW[9];
 
 // Obtenemos valores absolutos directamente de los datos SPI 
-// Eliminamos los registros intermedios raw_x_sample, raw_y_sample, raw_z_sample
 wire [15:0] abs_x = (data_x[15]) ? (~data_x + 1'b1) : data_x;
 wire [15:0] abs_y = (data_y[15]) ? (~data_y + 1'b1) : data_y;
 wire [15:0] abs_z = (data_z[15]) ? (~data_z + 1'b1) : data_z;
@@ -103,7 +100,7 @@ reg is_negative;
 reg [3:0] axis_code; // Para mostrar en HEX5 (0, 1, 2 o 3)
 
 always @(*) begin
-	// Selección del eje mediante case 
+	// Selección de que se displaya mediante case 
 	case(SW[1:0])
 		2'b00: begin // Eje X
 			display_data = abs_x;
@@ -120,10 +117,10 @@ always @(*) begin
 			is_negative = is_negative_z;
 			axis_code = 4'd2; // Z = 2
 		end
-		default: begin // Caso 3 o cualquier otro
-			display_data = 16'h0000; // Podríamos mostrar ceros o cualquier otro valor por defecto
+		default: begin 
+			display_data = 16'h0000; 
 			is_negative = 1'b0;
-			axis_code = 4'd3; // Código 3
+			axis_code = 4'd3; 
 		end
 	endcase
 end

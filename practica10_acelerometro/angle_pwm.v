@@ -1,12 +1,12 @@
 module angle_pwm #(
-	parameter TIME_MS = 20,                // Tiempo en ms para cada movimiento
-	parameter MEMORY_SIZE = 128,           // Cuántas posiciones tiene la secuencia
-	parameter CLOCK_FREQ_HZ = 50000000,    // Frecuencia del reloj (50MHz)
-	parameter MEMORY_FILE = "servo_angles.hex" // Archivo con los ángulos
+	parameter TIME_MS = 500,                
+	parameter MEMORY_SIZE = 128,           
+	parameter CLOCK_FREQ_HZ = 50000000,    
+	parameter MEMORY_FILE = "servo_angles.hex" 
 )(
-	input wire clk,               // Reloj del sistema
-	input wire rst_a_n,           // Reset, vuelve todo al inicio
-	input wire start_signal,      // Señal para arrancar la secuencia
+	input wire clk,               
+	input wire rst_a_n,           
+	input wire start_signal,      // señal de arranque (secuencia)
 	
 	// Salidas para los tres servos, formato que uso en pwm_controller
 	output wire [15:0] servo1_angle,
@@ -17,7 +17,6 @@ module angle_pwm #(
 	output wire servo3_is_negative
 );
 
-	// Estados de la máquina - eliminamos OUTPUT
 	localparam IDLE = 2'b00;    // Esperando a que le demos start
 	localparam LOAD = 2'b01;    // Leyendo memoria
 	localparam WAIT = 2'b10;    // Esperando el tiempo configurado
@@ -60,15 +59,15 @@ module angle_pwm #(
 		.is_negative(servo3_is_negative)
 	);
 	
-	// Cargamos el archivo de memoria al inicio
+	// load memoria
 	initial begin
 		$readmemh(MEMORY_FILE, angle_memory);
 	end
 	
-	// Máquina de estados simplificada - eliminamos el estado OUTPUT
+	// Máquina de estados 
 	always @(posedge clk or negedge rst_a_n) begin
 		if (!rst_a_n) begin
-			// Reiniciamos todos los registros
+			// reiniciamos todos los registros
 			state <= IDLE;
 			addr_counter <= 0;
 			wait_counter <= 0;
@@ -77,7 +76,7 @@ module angle_pwm #(
 			servo3_angle_reg <= 0;
 		end 
 		else begin
-			// Lógica de la máquina de estados
+			// lógica de la máquina de estados
 			case (state)
 				IDLE: begin
 					// Esperamos la señal de inicio
@@ -86,34 +85,35 @@ module angle_pwm #(
 				end
 				
 				LOAD: begin
-					// Leemos los tres ángulos de la memoria para la posición actual
+					// Leemos los tres ángulos de la memoria, cada 3 posiciones es el mismo ángulo, por eso multiplico el address counter por 3
+					//los valores que se cargan se outputean
 					servo1_angle_reg <= angle_memory[addr_counter*3];
 					servo2_angle_reg <= angle_memory[addr_counter*3 + 1];
 					servo3_angle_reg <= angle_memory[addr_counter*3 + 2];
 					
-					// Iniciamos la espera directamente
+					// se leen y se va a esperar
 					state <= WAIT;
 					wait_counter <= 0;  // Reiniciamos el contador
 				end
 				
 				WAIT: begin
-					// Incrementamos el contador de espera
+					// por defecto se aumenta el contador de espera
 					wait_counter <= wait_counter + 1;
 					
-					// Si llegamos al tiempo deseado, pasamos a la siguiente posición
+					// Ssi llegamos al parametro calculado para durar los ms a partir de los ticks 
 					if (wait_counter >= WAIT_TICKS - 1) begin
 						// Incrementamos el contador de dirección o volvemos al inicio
 						if (addr_counter >= MEMORY_SIZE - 1)
 							addr_counter <= 0;  // Volvemos a empezar la secuencia
 						else
-							addr_counter <= addr_counter + 1;  // Siguiente posición
+							addr_counter <= addr_counter + 1;  
 							
 						// Vamos a cargar la siguiente posición
 						state <= LOAD;
 					end
 				end
 				
-				default: state <= IDLE;  // Por seguridad
+				default: state <= IDLE;  
 			endcase
 		end
 	end

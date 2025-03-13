@@ -11,16 +11,13 @@ module angle_to_hex (
 	
 	always @(*) begin
 		if (is_negative) begin
-			// Para ángulos de 0° a 89°, escalamos de 0x00 a 0xFF
-			// Ahora usamos 89 como denominador para que 0° -> 0x00 y 89° -> 0xFF exactamente
-			valor_mapeado = (angle * 255) / 89;
+			valor_mapeado =  (90-angle)*255 / 89;
 		end else begin
-			// Para ángulos de 90° a 180°, escalamos de 0x00 a 0xFF
-			// Ahora restamos 90 para que 90° -> 0x00 y 180° -> (180 - 90=90)/90 *255 = 255=FF  -> 0xFF exactamente
+		
 			valor_mapeado = ((angle - 90) * 255) / 90;
 		end
 	end
 	
-	// Asignamos el resultado final con los 8 bits superiores como ceros
+	// Assignamos el resultado final con los 8 bits superiores como ceros
 	assign angle_bin = {8'b0, valor_mapeado};
 endmodule
