@@ -5,106 +5,112 @@ module pwm_controller (
 	input is_negative
 );
 	localparam BIT_RESOLUTION = 8;
-	localparam PWM_STEP = 50_000/(2**(BIT_RESOLUTION-1));//-1 PORQUE AGARRO EL PRIMER BIT del tercer nibble, es para evitar que se vaya a cero cuando 0F-10
-	//en la práctica es un bit menos de resolución porque casi nunca sale el primer bit del tercer nibble.
+	localparam PWM_STEP = 50_000/(2**(BIT_RESOLUTION-1));
 	
-	// Extraemos los bits útiles para el ángulo
-	wire [BIT_RESOLUTION-1:0] current_rough_angle = absolute_angle[8:1];
+	// Convertimos a valor con signo desde el principio
+	wire [BIT_RESOLUTION-1:0] angle_abs = absolute_angle[8:1];
+	wire signed [BIT_RESOLUTION:0] signed_angle; // Un bit extra para signo
 	
-	// Registros para implementar histéresis
-	reg [BIT_RESOLUTION-1:0] filtered_rough_angle;
+	// Aplicamos el signo según is_negative, el formato se cambia a signed para que podamos sumar negativos
+	assign signed_angle = is_negative ? -$signed({1'b0, angle_abs}) : $signed({1'b0, angle_abs});
 	
-	// Registros para media móvil con ventana de 16
-	reg [BIT_RESOLUTION-1:0] angle_history [0:15]; // memoria de 16 valores, salio de chiripada
-	wire [BIT_RESOLUTION+5:0] angle_sum; // Bits extra para la suma (6+4=10 bits)
-	wire [BIT_RESOLUTION-1:0] avg_angle;
+	// memoria para media móvil con ventana de 16 (con signo)
+	reg signed [BIT_RESOLUTION:0] angle_history [0:15];
+	wire signed [BIT_RESOLUTION+7:0] angle_sum; // Bits extra para suma, un monton para estar seguros de no overflow
+	wire signed [BIT_RESOLUTION:0] avg_angle;
 	
-	// Calculamos la suma de todo el historial. croe que pude haber hecho un for loop y ya
+	// Calculamos la suma (con valores con signo)
 	assign angle_sum = angle_history[0] + angle_history[1] + angle_history[2] + angle_history[3] +
 					   angle_history[4] + angle_history[5] + angle_history[6] + angle_history[7] +
 					   angle_history[8] + angle_history[9] + angle_history[10] + angle_history[11] +
 					   angle_history[12] + angle_history[13] + angle_history[14] + angle_history[15];
 	
-	// dividimos por 16 (desplazamiento de 4 bits)
-	assign avg_angle = angle_sum >> 4;
+	// División por 16 manteniendo signo
+	assign avg_angle = angle_sum >>> 4; // Desplazamiento aritmético
+	//si son positivos funciona igual que el desplazamiento normal, pero si es negativo, agrega 1 en los lugares vacíos en lugar de 0s
 	
-	// Parámetros de histéresis
+	// Histéresis (ahora con valor con signo)
+	reg signed [BIT_RESOLUTION:0] filtered_angle;
 	parameter HYST_THRESHOLD = 1;
 	
+	// Registros para PWM
 	reg [19:0] duty_cycle;
 	reg [19:0] counter;
 	reg [19:0] calculated_duty;
 	
-	// filtrar con histeresis para reducir el jitter
-	always @(posedge clk or negedge rst_a_n) begin
-		if (!rst_a_n) begin
-			filtered_rough_angle <= 0;
-		end else begin
-			// Solo actualizamos el valor filtrado si la diferencia es mayor que el umbral
-			if (current_rough_angle >= filtered_rough_angle) begin
-				if ((current_rough_angle - filtered_rough_angle) > HYST_THRESHOLD)
-					filtered_rough_angle <= current_rough_angle;
-			end else begin
-				if ((filtered_rough_angle - current_rough_angle) > HYST_THRESHOLD)
-					filtered_rough_angle <= current_rough_angle;
-			end
-		end
-	end
+	// Reloj lento para actualizaciones
+	wire slow_clk;
+	clk_div_a_n #(60) clk_div1 (clk, rst_a_n, slow_clk);
 	
-	// Implementación de la media móvil con ventana de 16
+	// Media móvil
 	integer i;
-	always @(posedge clk or negedge rst_a_n) begin
+	always @(posedge slow_clk or negedge rst_a_n) begin
 		if (!rst_a_n) begin
-			// Inicializamos todos los valores del historial a 0
+			// Reset
 			for (i = 0; i < 16; i = i + 1) begin
 				angle_history[i] <= 0;
 			end
 		end else begin
-			// Desplazamos todos los valores, del indice mayor al menor
+			// Desplazamiento de valores
 			for (i = 15; i > 0; i = i - 1) begin
 				angle_history[i] <= angle_history[i-1];
 			end
-			// Añadimos el valor más reciente
-			angle_history[0] <= filtered_rough_angle;
+			// Añadimos valor con signo
+			angle_history[0] <= signed_angle;
 		end
 	end
 	
-	//duty cycle modifier (usando el valor promediado)
+	// Hiisteresis pa numeros con signo
+	always @(posedge slow_clk or negedge rst_a_n) 
+	begin
+	if (!rst_a_n) 
+	begin
+		filtered_angle <= 0;
+	end 
+	else 
+	begin
+		// Calculamos la diferencia absoluta para evitar problemas en cruces por cero
+		if ((avg_angle > filtered_angle && (avg_angle - filtered_angle > HYST_THRESHOLD)) ||
+		    (avg_angle < filtered_angle && (filtered_angle - avg_angle > HYST_THRESHOLD)))
+			filtered_angle <= avg_angle;
+		// Si la diferencia es menor que el umbral, mantenemos el valor filtrado
+	end
+	end
+	
+	// al usar signed, no hay diferencia entre sumar un negativo y positivo
 	always @(posedge clk or negedge rst_a_n) begin
 		if (!rst_a_n)
 			duty_cycle <= 0; 
 		else begin
-			if (is_negative)
-				calculated_duty = (75_000 - (avg_angle)*PWM_STEP); // Ahora usamos avg_angle
-			else
-				calculated_duty = (avg_angle*PWM_STEP)+ 75_000; // Ahora usamos avg_angle
+			// Fórmula única: 75_000 es el centro, filtered_angle*PWM_STEP es el offset
+			calculated_duty = 75_000 + (filtered_angle * PWM_STEP);
 			
-			// Limitamos el duty cycle entre 25_000 y 125_000
+			// Limitadores
 			if (calculated_duty > 125_000)
-				duty_cycle <= 125_000; // Máximo permitido
+				duty_cycle <= 125_000; 
 			else if (calculated_duty < 25_000)
-				duty_cycle <= 25_000; // Mínimo permitido
+				duty_cycle <= 25_000; 
 			else
-				duty_cycle <= calculated_duty; // Valor calculado dentro de límites
+				duty_cycle <= calculated_duty; 
 		end
 	end
 	
-	// contador que genera ciclos de 20ms
+	// Generador PWM
 	always @(posedge clk or negedge rst_a_n) begin
 		if (!rst_a_n)
 			counter <= 0; 
 		else if (counter < 1_000_000-1)
-			counter <= counter + 1; // Seguimos contando, tranquilos
+			counter <= counter + 1; 
 		else 
 			counter <= 0; 
 	end
 	
 	always @(posedge clk or negedge rst_a_n) begin
 		if (!rst_a_n)
-			pwm_signal <= 0; // Sin señal cuando hay reset
+			pwm_signal <= 0; 
 		else if (counter < duty_cycle)
-			pwm_signal <= 1; // Encendemos cuando contador es menor que duty_cycle
+			pwm_signal <= 1; 
 		else
-			pwm_signal <= 0; // Apagamos en caso contrario
+			pwm_signal <= 0; 
 	end
 endmodule

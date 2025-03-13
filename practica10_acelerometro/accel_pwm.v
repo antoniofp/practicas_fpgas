@@ -23,7 +23,8 @@ module accel_pwm (
 	inout 		          		GSENSOR_SDI,
 	inout 		          		GSENSOR_SDO,
 	//////////// GPIO //////////
-	output		     [35:0]		GPIO
+	output		     [35:0]		GPIO,
+	output		[15:0] Arduino_IO
 );
 
 	// Cables internos para conectar accel_reader a pwm_controller
@@ -35,7 +36,7 @@ module accel_pwm (
 
 	// Instanciamos el controlador PWM - Conectamos directamente al eje Y
 	pwm_controller servo1(
-		.rst_a_n(KEY[0]),           // Mismo reset que accel_reader
+		.rst_a_n(SW[9]),           // Mismo reset que accel_reader
 		.clk(MAX10_CLK1_50),        // Usamos el reloj principal
 		.pwm_signal(GPIO[1]),       // Conectamos a la señal interna
 		.absolute_angle(mi_abs_x),  // Conectamos directamente al eje Y
@@ -43,7 +44,7 @@ module accel_pwm (
 	);
 	
 		pwm_controller servo2(
-		.rst_a_n(KEY[0]),           // Mismo reset que accel_reader
+		.rst_a_n(SW[9]),           // Mismo reset que accel_reader
 		.clk(MAX10_CLK1_50),        // Usamos el reloj principal
 		.pwm_signal(GPIO[2]),       // Conectamos a la señal interna
 		.absolute_angle(mi_abs_y),  // Conectamos directamente al eje Y
@@ -51,11 +52,11 @@ module accel_pwm (
 	);
 	
 			pwm_controller servo3(
-		.rst_a_n(KEY[0]),           // Mismo reset que accel_reader
+		.rst_a_n(SW[9]),           // Mismo reset que accel_reader
 		.clk(MAX10_CLK1_50),        // Usamos el reloj principal
 		.pwm_signal(GPIO[3]),       // Conectamos a la señal interna
-		.absolute_angle(mi_abs_z),  // Conectamos directamente al eje Y
-		.is_negative(mi_neg_z)      // Signo Y
+		.absolute_angle(mi_abs_y),  // Conectamos directamente al eje Y
+		.is_negative(mi_neg_y)      // Signo Y
 	);
 
 	// Instanciamos el lector de acelerómetro

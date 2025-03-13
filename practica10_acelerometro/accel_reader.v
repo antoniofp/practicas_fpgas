@@ -32,7 +32,7 @@ module accel_reader (
 	);
 //===== Declarations
 	// Simplificamos parámetros de frecuencia
-	localparam SPI_CLK_FREQ  = 60_000;      // SPI Clock (Hz)
+	localparam SPI_CLK_FREQ  = 600;//_000;      // SPI Clock (Hz)
 	
 	// clks and reset
 	wire reset_n;
@@ -87,32 +87,16 @@ spi_control #(
 // Pressing KEY0 freezes the accelerometer's output
 assign reset_n = KEY[0];
 
-// Registros para almacenar los valores para mostrar
-reg signed [15:0] raw_x_sample = 0;
-reg signed [15:0] raw_y_sample = 0;
-reg signed [15:0] raw_z_sample = 0;
-
-always @(posedge clk or negedge reset_n) begin
-	if (!reset_n) begin
-		raw_x_sample <= 0;
-		raw_y_sample <= 0;
-		raw_z_sample <= 0;
-	end else if (data_update) begin  // Señal que indica nuevos datos
-		raw_x_sample <= data_x;
-		raw_y_sample <= data_y;
-		raw_z_sample <= data_z;
-	end
-end
-
-// Obtenemos valores absolutos para visualización
-wire [15:0] abs_x = (raw_x_sample[15]) ? (~raw_x_sample + 1'b1) : raw_x_sample;
-wire [15:0] abs_y = (raw_y_sample[15]) ? (~raw_y_sample + 1'b1) : raw_y_sample;
-wire [15:0] abs_z = (raw_z_sample[15]) ? (~raw_z_sample + 1'b1) : raw_z_sample;
+// Obtenemos valores absolutos directamente de los datos SPI 
+// Eliminamos los registros intermedios raw_x_sample, raw_y_sample, raw_z_sample
+wire [15:0] abs_x = (data_x[15]) ? (~data_x + 1'b1) : data_x;
+wire [15:0] abs_y = (data_y[15]) ? (~data_y + 1'b1) : data_y;
+wire [15:0] abs_z = (data_z[15]) ? (~data_z + 1'b1) : data_z;
 
 // Flags para determinar si los valores son negativos
-wire is_negative_x = raw_x_sample[15];
-wire is_negative_y = raw_y_sample[15];
-wire is_negative_z = raw_z_sample[15];
+wire is_negative_x = data_x[15];
+wire is_negative_y = data_y[15];
+wire is_negative_z = data_z[15];
 
 // Conectamos los valores absolutos y signos a las salidas
 assign abs_x_out = abs_x;
@@ -174,7 +158,6 @@ seg7 s5 ( .in(axis_code+1), .display(HEX5) );
 assign LEDR = {is_negative, display_data[8:0]};
 
 endmodule
-
 
 /*
 accel mi_acelerometro (
