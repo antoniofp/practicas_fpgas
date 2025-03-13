@@ -35,7 +35,7 @@ module accel_pwm (
 	// El resto de GPIO se deja sin conectar (serán Z)
 
 	// Instanciamos el controlador PWM - Conectamos directamente al eje Y
-	pwm_controller servo1(
+	pwm_controller servoX(
 		.rst_a_n(SW[9]),           // Mismo reset que accel_reader
 		.clk(MAX10_CLK1_50),        // Usamos el reloj principal
 		.pwm_signal(GPIO[1]),       // Conectamos a la señal interna
@@ -43,15 +43,15 @@ module accel_pwm (
 		.is_negative(mi_neg_x)      // Signo Y
 	);
 	
-		pwm_controller servo2(
-		.rst_a_n(SW[9]),           // Mismo reset que accel_reader
-		.clk(MAX10_CLK1_50),        // Usamos el reloj principal
-		.pwm_signal(GPIO[2]),       // Conectamos a la señal interna
-		.absolute_angle(mi_abs_y),  // Conectamos directamente al eje Y
-		.is_negative(mi_neg_y)      // Signo Y
+		pwm_controller #(.MIN_DC(40_000), .MAX_DC(55_000)) servoY(
+		.rst_a_n(SW[9]),           //MIN_DC AND MAX_DC ARE SWAPPED BECAUSE I NEGATED THE ANGLE
+		.clk(MAX10_CLK1_50),        
+		.pwm_signal(GPIO[2]),       
+		.absolute_angle(mi_abs_y),  
+		.is_negative(~mi_neg_y)      
 	);
 	
-			pwm_controller servo3(
+			pwm_controller servoZ(
 		.rst_a_n(SW[9]),           // Mismo reset que accel_reader
 		.clk(MAX10_CLK1_50),        // Usamos el reloj principal
 		.pwm_signal(GPIO[3]),       // Conectamos a la señal interna

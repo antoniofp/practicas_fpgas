@@ -1,4 +1,4 @@
-module pwm_controller (
+module pwm_controller #(MAX_DC = 125_000, MIN_DC = 25_000, UPDATE_FREQ=60) (
 	input rst_a_n, clk,
 	output reg pwm_signal,
 	input [15:0] absolute_angle,
@@ -29,9 +29,9 @@ module pwm_controller (
 	assign avg_angle = angle_sum >>> 4; // Desplazamiento aritmético
 	//si son positivos funciona igual que el desplazamiento normal, pero si es negativo, agrega 1 en los lugares vacíos en lugar de 0s
 	
-	// Histéresis (ahora con valor con signo)
+	// Histéresis filtro
 	reg signed [BIT_RESOLUTION:0] filtered_angle;
-	parameter HYST_THRESHOLD = 1;
+	localparam HYST_THRESHOLD = 0;
 	
 	// Registros para PWM
 	reg [19:0] duty_cycle;
@@ -40,7 +40,7 @@ module pwm_controller (
 	
 	// Reloj lento para actualizaciones
 	wire slow_clk;
-	clk_div_a_n #(60) clk_div1 (clk, rst_a_n, slow_clk);
+	clk_div_a_n #(UPDATE_FREQ) clk_div1 (clk, rst_a_n, slow_clk);
 	
 	// Media móvil
 	integer i;
@@ -86,10 +86,10 @@ module pwm_controller (
 			calculated_duty = 75_000 + (filtered_angle * PWM_STEP);
 			
 			// Limitadores
-			if (calculated_duty > 125_000)
-				duty_cycle <= 125_000; 
-			else if (calculated_duty < 25_000)
-				duty_cycle <= 25_000; 
+			if (calculated_duty > MAX_DC)
+				duty_cycle <= MAX_DC; 
+			else if (calculated_duty < MIN_DC)
+				duty_cycle <= MIN_DC; 
 			else
 				duty_cycle <= calculated_duty; 
 		end
