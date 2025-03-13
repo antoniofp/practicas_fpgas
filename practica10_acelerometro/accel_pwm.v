@@ -23,8 +23,7 @@ module accel_pwm (
 	inout 		          		GSENSOR_SDI,
 	inout 		          		GSENSOR_SDO,
 	//////////// GPIO //////////
-	output		     [35:0]		GPIO,
-	output		[15:0] Arduino_IO
+	output		     [35:0]		GPIO
 );
 
 	// Cables internos para conectar accel_reader a pwm_controller
@@ -43,7 +42,7 @@ module accel_pwm (
 		.is_negative(mi_neg_x)      // Signo Y
 	);
 	
-		pwm_controller #(.MIN_DC(40_000), .MAX_DC(55_000)) servoY(
+		pwm_controller #(.MIN_DC(40_000), .MAX_DC(55_000), .UPDATE_FREQ(60)) servoY(
 		.rst_a_n(SW[9]),           //MIN_DC AND MAX_DC ARE SWAPPED BECAUSE I NEGATED THE ANGLE
 		.clk(MAX10_CLK1_50),        
 		.pwm_signal(GPIO[2]),       

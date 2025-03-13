@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "MAX 10"
 set_global_assignment -name DEVICE 10M50DAF484C7G
-set_global_assignment -name TOP_LEVEL_ENTITY accel_pwm
+set_global_assignment -name TOP_LEVEL_ENTITY arm_controller
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 20.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "20:56:27  MARCH 05, 2023"
 set_global_assignment -name LAST_QUARTUS_VERSION "23.1std.0 Lite Edition"
@@ -244,7 +244,6 @@ set_global_assignment -name VERILOG_FILE test/spi_control_tb.v
 set_global_assignment -name VERILOG_FILE test/file_reader.v
 set_global_assignment -name VERILOG_FILE hdl/spi_serdes.v
 set_global_assignment -name VERILOG_FILE hdl/spi_control.v
-set_global_assignment -name VERILOG_FILE accel.v
 set_global_assignment -name VERILOG_FILE seg7.v
 set_global_assignment -name QIP_FILE PLL.qip
 set_global_assignment -name TCL_SCRIPT_FILE ../../../../Downloads/DE10_LITE_Golden_Top_project/pin_assigment.tcl
@@ -254,6 +253,10 @@ set_global_assignment -name VERILOG_FILE clk_div_a_n.v
 set_global_assignment -name VERILOG_FILE pwm_controller.v
 set_global_assignment -name VERILOG_FILE accel_reader.v
 set_global_assignment -name VERILOG_FILE accel_pwm.v
+set_global_assignment -name VERILOG_FILE angle_to_hex.v
+set_global_assignment -name VERILOG_FILE hex_to_angle.v
+set_global_assignment -name VERILOG_FILE angle_pwm.v
+set_global_assignment -name VERILOG_FILE arm_controller.v
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
@@ -442,5 +445,4 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[32]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[33]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[34]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[35]
-set_global_assignment -name VERILOG_FILE output_files/angle_to_hex.v
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

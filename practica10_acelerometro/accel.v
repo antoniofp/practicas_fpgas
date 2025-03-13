@@ -76,7 +76,7 @@ spi_control #(
 
 //===== Main block
 // Pressing KEY0 freezes the accelerometer's output
-assign reset_n = KEY[0];
+assign reset_n = SW[9];
 
 // Registros para almacenar los valores para mostrar
 reg signed [15:0] raw_x_sample = 0;

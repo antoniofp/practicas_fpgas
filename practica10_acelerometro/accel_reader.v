@@ -52,16 +52,7 @@ PLL ip_inst (
 	.c2 ( spi_clk_out )          //  2 MHz, phase 270 degrees
 	);
 
-/*
-	clk_div_a_n #(
-	.OUTPUT_FREQ(60*2)          
-) update_div (
-	.clk_in(clk),              // Reloj de entrada a 25MHz
-	.rst_a_n(reset_n),         // Reset activo bajo
-	.clk_out(display_update_freq)      // Señal de salida a 10Hz
-);
 
-*/ //ya no uso este clock divider
 
 //Instantiation of the spi_control module
 spi_control #(
@@ -84,8 +75,7 @@ spi_control #(
 	);
 
 //===== Main block
-// Pressing KEY0 freezes the accelerometer's output
-assign reset_n = KEY[0];
+assign reset_n = SW[9];
 
 // Obtenemos valores absolutos directamente de los datos SPI 
 // Eliminamos los registros intermedios raw_x_sample, raw_y_sample, raw_z_sample
@@ -159,34 +149,3 @@ assign LEDR = {is_negative, display_data[8:0]};
 
 endmodule
 
-/*
-accel mi_acelerometro (
-	// Puertos que necesitas usar directamente
-	.abs_x_out(mi_abs_x),
-	.abs_y_out(mi_abs_y),
-	.abs_z_out(mi_abs_z),
-	.neg_x_out(mi_neg_x),
-	.neg_y_out(mi_neg_y),
-	.neg_z_out(mi_neg_z),
-	
-	// Puertos de conexión a hardware físico (del TCL)
-	.ADC_CLK_10(ADC_CLK_10),
-	.MAX10_CLK1_50(MAX10_CLK1_50),
-	.MAX10_CLK2_50(MAX10_CLK2_50),
-	.HEX0(HEX0),
-	.HEX1(HEX1),
-	.HEX2(HEX2),
-	.HEX3(HEX3),
-	.HEX4(HEX4),
-	.HEX5(HEX5),
-	.KEY(KEY),
-	.LEDR(LEDR),
-	.SW(SW),
-	.GSENSOR_CS_N(GSENSOR_CS_N),
-	.GSENSOR_INT(GSENSOR_INT),
-	.GSENSOR_SCLK(GSENSOR_SCLK),
-	.GSENSOR_SDI(GSENSOR_SDI),
-	.GSENSOR_SDO(GSENSOR_SDO)
-);
-
-*/
