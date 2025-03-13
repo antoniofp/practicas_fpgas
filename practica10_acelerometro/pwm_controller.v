@@ -4,11 +4,11 @@ module pwm_controller (
 	input [15:0] absolute_angle,
 	input is_negative
 );
-	localparam BIT_RESOLUTION = 8;
+	localparam BIT_RESOLUTION = 9;
 	localparam PWM_STEP = 50_000/(2**(BIT_RESOLUTION-1));
 	
 	// Convertimos a valor con signo desde el principio
-	wire [BIT_RESOLUTION-1:0] angle_abs = absolute_angle[8:1];
+	wire [BIT_RESOLUTION-1:0] angle_abs = absolute_angle[8:0];
 	wire signed [BIT_RESOLUTION:0] signed_angle; // Un bit extra para signo
 	
 	// Aplicamos el signo según is_negative, el formato se cambia a signed para que podamos sumar negativos
