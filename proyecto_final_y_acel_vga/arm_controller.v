@@ -123,6 +123,7 @@ module arm_controller (
 	
 	//conversión del ángulo del mux a ángulo decimal para mostrar en vga
 	wire [11:0] miliangle_wireX, miliangle_wireY, miliangle_wireZ;
+	//instancias de convertidores
 	hex_to_angle hex_to_angleX(
 	.hex_value(mux_abs_x),     // Valor hexadecimal (solo usamos los 8 LSB)
 	.is_negative(mux_neg_x),     // Indica si estamos en el primer rango (0-89.9°)
@@ -152,7 +153,7 @@ module arm_controller (
 	pwm_controller #(.MIN_DC(60_000)) servoY(
 		.rst_a_n(SW[9]),
 		.clk(MAX10_CLK1_50),
-		.pwm_signal(GPIO[2]),
+		.pwm_signal(GPIO[4]),
 		.absolute_angle(mux_abs_y),
 		.is_negative(mux_neg_y)
 	);
