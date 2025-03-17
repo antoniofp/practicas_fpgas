@@ -8,4 +8,4 @@ Hay una carpeta para cada práctica con sus respectivos archivos verilog (.v) de
 En la carpeta de otros módulos se encuentran archivos de módulos útiles entre varias prácticas, por ejemplo, el debouncer, clock divider, entre otros.
 
 
-En este repositorio también está el proyecto de quartus dónde se hizo el proyecto final, se hizo a partir de una copia del proyecto del acelerómetro que pasaron los profesores
+En este repositorio también está el proyecto de quartus donde se hizo el proyecto final, se hizo a partir de una copia del proyecto del acelerómetro que pasaron los profesores
